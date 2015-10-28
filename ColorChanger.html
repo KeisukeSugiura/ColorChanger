@@ -11,212 +11,66 @@
 
     <div id="bg">
         <video id="video" autoplay></video>
-        <canvas id="canvas" width="480" height="360"></canvas>
+        <canvas id="canvas" width="300" height="240"></canvas>
+        <canvas id="result" width='300' height='240'></canvas>
+        <input id="button_capture" type="button" value="capture">
+        <input id="button_color_black" type="button" value="black">
+        <input id="button_color_red" type="button" value="red">
+        <input id="button_color_green" type="button" value="green">        
+        <input id="button_color_blue" type="button" value="blue">
     </div>
 
 
-    <div>
-        <canvas id="santa"></canvas>
-        </div>
-        <div>
-        <canvas id="poteko" ></canvas>
-    </div>
- 
+   
+ <script src="./colorFilter.js"></script>
 <script>
- var video = document.getElementById('video');
- var santaEl = document.getElementById('santa');
- var potekoEl = document.getElementById('poteko');
- var santaImage = new Image();
- var potekoImage = new Image();
-
-var santaContext = santaEl.getContext('2d');
-var potekoContext =　potekoEl.getContext('2d');
-
-
-santaImage.onload = function() {
-santaContext.drawImage(santaImage,0,0);
-//changeHueForDichromacy(santaContext);
-
-}
-potekoImage.onload=function(){
-potekoContext.drawImage(potekoImage,0,0);
-changeHueForDichromacy(potekoContext);
-}
-
- santaImage.src = 'poteco.png';
- potekoImage.src = 'poteco.png';
- 
-
-
-
+var video = document.getElementById('video');
+var btnEl = document.getElementById('button_capture');
+var btnBlack = document.getElementById('button_color_black');
+var btnRed = document.getElementById('button_color_red');
+var btnGreen = document.getElementById('button_color_green');
+var btnBlue = document.getElementById('button_color_blue');
 
     // videoは非表示にしておく
     video.style.display = 'none';
 
     var canvas = document.getElementById('canvas');
+    var resultCanvas = document.getElementById('result');
     // そのまま表示すると鏡像にならないので反転させておく
-    canvas.style.transform = 'rotateY(180deg)';
+    //canvas.style.transform = 'rotateY(180deg)';
 
-var colorFilter = (function(canvas){
-    var module = {};
-    module.colorKey = 0;
-    module.threshold = 70;
-    module.imageDataStack = [];
-    module.colorDataStack = [];
-    module.iBoardImageData=[];
-    module.instantImageStack=[];
-    module.mainCanvas = canvas;
-    module.mainContext = module.mainCanvas.getContext('2d');
+    var context = canvas.getContext('2d');
+    var resultContext = resultCanvas.getContext('2d');
 
-    module.getColor = function(colorNumber){
-        switch(colorNumber){
-                case 0:
-                //黒
-                return {r:0,g:0,b:0};
-                case 1:
-                //赤
-                return {r:255,g:0,b:0};
-                case 2:
-                //緑
-                return {r:0,g:255,b:0};
-                case 3:
-                //青
-                return {r:0,g:0,b:255};
-                default:
-                //白
-                return {r:255,g:255,b:255};
-        }
-    };
+     var image = new Image();
 
-    module.captureImage = function(canvas){
-        var imageData = canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),
-        data = imageData.data;        
-    }
-
-    module.pushInstantImageStack = function(canvas){
-        module.instantImageDataStack.push(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data);
-        if(module.instantImageDataStack.length >3){
-            module.instantImageDataStack.shift();
-        }
-    }
-
-    module.effectBinalize = function(imageData){
-        for(var i=0;i<imageData.length;i=i+4){
-            var B =  0.298912 * imageData[i] + 0.586611 * imageData[i+1] + 0.114478 * imageData[i+2];
-            if(B>threshold){
-                B = 255;
-            }else{
-                B = 0;
-            }
-            imageData[i] = B;
-            imageData[i+1]=B;
-            imageData[i+2]=B;
-            imageData[i+3]=255;
-
-        }
-        imageData.data = data;
-        return imageData;
-       // canvas.getContext('2d').putImageData(imageData,0,0);
-    }
-
-    module.getAverageColor= function(imageDatas){
-        var nImageData=[];
-        var imageData1 = imageDatas[0];
-        var imageData2 = imageDatas[1];
-        var imageData3 = imageDatas[2];
-        for(var i=0; i<imageData1; i=i+4){
-            nImageData[i] = (imageData1[i]+imageData2[i]+imageData3[i])/3;
-            nImageData[i+1] = (imageData1[i+1]+imageData2[i+1]+imageData3[i+1])/3;
-            nImageData[i+2] = (imageData1[i+2]+imageData2[i+2]+imageData3[i+2])/3;
-            nImageData[i+3] = (imageData1[i+3]+imageData2[i+3]+imageData3[i+3])/3;
-        }
-        return nImageData;
-    }
-
-    module.getDistance = function(){
-        var currentImages = module.instantImageStack.slice();
-        var currentBinImageData = module.effectBinalize(module.getAverageColor(currentImages));
-        for(var i=0; i<module.imageDataStack.length;i++){
-            for(var j=0;j<currentBinImageData.length;j=j+4){
-                if(currentBinImageData[j] == 0){
-                    if(module.imageDataStack[i][j] == 0){
-                        currentBinImageData[j] = 255;
-                        currentBinImageData[j+1] = 255;
-                        currentBinImageData[j+2] = 255;   
-                    }
-                }
-            }
-        }
-        return currentBinImageData;
-        //imageDataStack.push(currentBinImageData);
-    }
-
-    module.getIBoard = function(){
-        module.imageDataStack.push(module.getDistance());
-        colorDataStack.push(module.getColor(module.colorKey));
-        var nImageDataStack =[];
-        for(var i=0; i<module.imageDataStack.length;i++){
-            nImageDataStack[i] = module.changeColor(imageDataStack[i],colorDataStack[i]);
-        }
-
-        for(var j=0; j<nImageDataStack[0].length;j=j+4){
-            
-            for(var i=0; i< nImageDataStack.length;i++){
-                module.iBoardImageData[j] = iBoardImageData[j]+(255-nImageDataStack[i][j]);
-                module.iBoardImageData[j+1] = iBoardImageData[j+1]-(255-nImageDataStack[i][j+1]);
-                module.iBoardImageData[j+2] = iBoardImageData[j+2]-(255-nImageDataStack[i][j+2]);
-                
-            }
-                if(moduleiBoardImageData[j] < 0){
-                    module.iBoardImageData = 0;
-                }
-                if(iBoardImageData[j+1] < 0){
-                    module.iBoardImageData = 0;
-                }
-                if(iBoardImageData[j+2] < 0){
-                    module.iBoardImageData = 0;
-                }
-                module.iBoardImageData[j+3] = 255;
-        }
-
-
-        
-    }
-
-    module.changeColor = function(imageData,color){
-        for(var i=0; i<imageData.length;i=i+4){
-            if(imageData[i] == 0){
-                imageData[i] = color.r;
-                imageData[i+1] = color.g;
-                imageData[i+2] = color.b;
-            }
-        }
-        return imageData;
-    }
-
-    module.drawVideo = function(video){
-        module.mainContext.drawImage(video, 0, 0, module.mainCanvas.width, module.mainCanvas.height);
-        var imageData = module.mainContext.getImageData(0, 0, module.mainCanvas.width, module.mainCanvas.height),
-            data = imageData.data;
-
-        imageData.data = data;
-        module.mainContext.putImageData(imageData, 0, 0);
-    }
-
-
-    return module;
-})(canvas);
-
-    //var context = canvas.getContext('2d');
+     image.onload = function() {
+     resultContext.drawImage(image,0,0,resultCanvas.width,resultCanvas.height);
+     }
+     image.src='poteco.png';
 
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
     navigator.getUserMedia({video: true, audio: false}, function (stream) {
         video.src = URL.createObjectURL(stream);
-        console.log(colorFilter);
-
-
-        colorFilter.drawVideo(video);
-        //draw();
+        btnEl.addEventListener('click',function(e){
+           colorFilter.captureImage(context);
+           colorFilter.compositImage(resultContext);
+        });
+        btnBlack.addEventListener('click',function(e){
+           colorFilter.colorKey =0;
+        });
+        btnRed.addEventListener('click',function(e){
+           colorFilter.colorKey = 1;
+         });
+        btnGreen.addEventListener('click',function(e){
+           colorFilter.colorKey =2;
+        });
+        btnBlue.addEventListener('click',function(e){
+           colorFilter.colorKey=3;
+        });
+        draw();
+        console.log('aaa');
+        //colorFilter.drawVideo(video,canvas);
     }, function () {});
 
     // videoの映像をcanvasに描画する
@@ -225,6 +79,8 @@ var colorFilter = (function(canvas){
         // ここでクロマキー処理をする
         //chromaKey();
         //changeHueForDichromacy(context);
+        
+        colorFilter.effectBinarize(context);
         requestAnimationFrame(draw);
     };
 
