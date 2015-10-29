@@ -13,7 +13,7 @@
 var colorFilter = (function(){
     var module = {};
     module.colorKey = 0;//0:黒,1:赤,2:緑,3:青
-    module.threshold = 180;
+    module.threshold = 50;//白黒の閾値
     module.imageDataStack = [];
     module.colorDataStack = [];
     module.iBoardImageData= [];
