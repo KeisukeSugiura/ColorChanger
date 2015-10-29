@@ -13,6 +13,7 @@
         <video id="video" autoplay></video>
         <canvas id="normal" width="300" height="240"></canvas>
         <canvas id="canvas" width="300" height="240"></canvas>
+        <canvas id="smooth" width="300" height="240"></canvas>
         <canvas id="result" width='300' height='240'></canvas>
         <canvas id="binarize" width="300" height="240"></canvas>
        <!--  <input id="button_capture" type="button" value="capture">
@@ -41,6 +42,7 @@ var btnBlue = document.getElementById('button_color_blue');
     var normal = document.getElementById('normal');
     var resultCanvas = document.getElementById('result');
     var binarizeCanvas = document.getElementById('binarize');
+    var smoothCanvas = document.getElementById('smooth');
 
     // そのまま表示すると鏡像にならないので反転させておく
     //canvas.style.transform = 'rotateY(180deg)';
@@ -49,14 +51,16 @@ var btnBlue = document.getElementById('button_color_blue');
     var normalContext = normal.getContext('2d');
     var resultContext = resultCanvas.getContext('2d');
     var binarizeContext = binarizeCanvas.getContext('2d');
+    var smoothContext = smoothCanvas.getContext('2d');
 
      var image = new Image();
 
      image.onload = function() {
      resultContext.drawImage(image,0,0,resultCanvas.width,resultCanvas.height);
-     rrf.effectRemoveReflection(resultCanvas);
+     //rrf.effectRemoveReflection(resultCanvas);
+     rrf.effectSmoothReflection(resultCanvas);
      }
-     image.src='test2.jpg';
+     image.src='test6.jpg';
 
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
     navigator.getUserMedia({video: true, audio: false}, function (stream) {
@@ -87,11 +91,13 @@ var btnBlue = document.getElementById('button_color_blue');
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         normalContext.drawImage(video, 0, 0, canvas.width, canvas.height);
         binarizeContext.drawImage(video,0,0,binarizeCanvas.width,binarizeCanvas.height);
+        smoothContext.drawImage(video,0,0,canvas.width,canvas.height);
         // ここでクロマキー処理をする
         //chromaKey();
         //changeHueForDichromacy(resultContext);
         //colorFilter.effectBinarize(context);
         rrf.effectRemoveReflection(canvas);
+        rrf.effectSmoothReflection(smoothCanvas);
         rrf.effectBinarize(binarizeCanvas);
         requestAnimationFrame(draw);
     };

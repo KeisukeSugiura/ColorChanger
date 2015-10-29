@@ -1,5 +1,8 @@
 
 /*
+	----------------
+	アイデア1(鏡面反射除去についての論文より)
+	----------------
 	二色性反射モデル
 	I:反射光の輝度
 	Is:鏡面反射成分の輝度
@@ -21,6 +24,14 @@
 	・物体の鏡面反射成分は光源のスペクトルと同じ(NIR仮定)
 	・一つのhueには一つのsurface colorしかないこと
 
+	-------------------
+	アイデア2(輝度平均と最大分散での調整)
+	-------------------
+	M色空間を用いる
+	上記の論文によれば,Izを調整すればできるはず
+	->Izの平均aveIzを求める,最大値maxIzも求める
+	->aveIzを閾値として,(maxIz-aveIz)を引く
+	
 
  */
 
@@ -163,6 +174,76 @@ rrf = (function(){
         //モジュールで保管
         //module.instantImageDataStack.push(imageData);
 
+    }
+
+    module.effectSmoothReflection = function(canvas){
+    	var context = canvas.getContext('2d');
+         var imageData = context.getImageData(0, 0, canvas.width, canvas.height),
+            data = imageData.data;
+            //TODO 3フレームの平均をとる->module.getAverageColor(imageData);
+            imageData.data = module.reflectionSmoothFilter(data);
+        context.putImageData(imageData, 0, 0);
+        
+    }
+    module.smoothReflection = function(Iz,MaxIz,MinIz,AveIz){
+
+    	if(Iz > AveIz){
+    		Iz = Iz - (Iz/MaxIz)*(Iz- AveIz);
+      	}
+    	return Iz;
+    }
+    
+    module.reflectionSmoothFilter = function(imageData){
+    	//引数imageData.data
+    	var hsiData = [];
+    	var maxIz = 0;
+    	var minIz =300;
+    	var sumIz = 0;
+    	var sumIx = 0;
+    	var sumIy = 0;
+    	var countIz =0;
+    	//色相情報調べる
+    	for(var i = 0; i< imageData.length;i=i+4){
+    		var hsi = module.rgb2advhsi([imageData[i],imageData[i+1],imageData[i+2]]);
+    		hsiData[i]=hsi[0];
+    		hsiData[i+1]=hsi[1];
+    		hsiData[i+2]=hsi[2];
+    		hsiData[i+3]=imageData[i+3];
+    		//console.log(hsi[2]);
+    		countIz++;
+    		sumIz=sumIz+hsi[2];
+    		if(maxIz < hsi[2]){
+    			maxIz = hsi[2];
+    		}
+    		if(minIz > hsi[2]){
+    			minIz = hsi[2];
+    		}
+    	}	
+    	var aveIz = sumIz/countIz;
+    	var aveIx = sumIx/countIz;
+    	var aveIy = sumIy/countIz;
+
+    	console.log(maxIz);
+    	console.log(countIz);
+    	console.log(imageData.length);
+    	console.log(aveIz);
+
+    	//画像処理する
+    	for(var i=0;i<hsiData.length;i=i+4){
+    		hsiData[i+2] = module.smoothReflection(hsiData[i+2],maxIz,minIz,aveIz);
+    	}
+
+
+
+    	for(var i=0;i<hsiData.length;i=i+4){
+    		var rgb = module.advhsi2rgb([hsiData[i],hsiData[i+1],hsiData[i+2]]);
+    		imageData[i] = rgb[0];
+    		imageData[i+1] = rgb[1];
+    		imageData[i+2] = rgb[2];
+    	}
+
+
+    	return imageData;
     }
 
 
