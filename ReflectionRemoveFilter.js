@@ -190,6 +190,9 @@ rrf = (function(){
     	if(Iz > AveIz){
     		Iz = Iz - (Iz/MaxIz)*(Iz- AveIz);
       	}
+      	// else{
+      	// 	Iz = Iz + (MinIz/Iz)*(AveIz-Iz);
+      	// }
     	return Iz;
     }
     

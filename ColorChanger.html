@@ -11,10 +11,11 @@
 
     <div id="bg">
         <video id="video" autoplay></video>
+        <canvas id="base" width='300' height='240'></canvas>
+        <canvas id="result" width='300' height='240'></canvas>
         <canvas id="normal" width="300" height="240"></canvas>
         <canvas id="canvas" width="300" height="240"></canvas>
         <canvas id="smooth" width="300" height="240"></canvas>
-        <canvas id="result" width='300' height='240'></canvas>
         <canvas id="binarize" width="300" height="240"></canvas>
        <!--  <input id="button_capture" type="button" value="capture">
         <input id="button_color_black" type="button" value="black">
@@ -43,7 +44,7 @@ var btnBlue = document.getElementById('button_color_blue');
     var resultCanvas = document.getElementById('result');
     var binarizeCanvas = document.getElementById('binarize');
     var smoothCanvas = document.getElementById('smooth');
-
+    var baseCanvas = document.getElementById('base');
     // そのまま表示すると鏡像にならないので反転させておく
     //canvas.style.transform = 'rotateY(180deg)';
 
@@ -52,15 +53,17 @@ var btnBlue = document.getElementById('button_color_blue');
     var resultContext = resultCanvas.getContext('2d');
     var binarizeContext = binarizeCanvas.getContext('2d');
     var smoothContext = smoothCanvas.getContext('2d');
-
+    var baseContext = baseCanvas.getContext('2d');
      var image = new Image();
 
      image.onload = function() {
      resultContext.drawImage(image,0,0,resultCanvas.width,resultCanvas.height);
+     baseContext.drawImage(image,0,0,resultCanvas.width,resultCanvas.height);
+
      //rrf.effectRemoveReflection(resultCanvas);
      rrf.effectSmoothReflection(resultCanvas);
      }
-     image.src='test6.jpg';
+     image.src='test5.jpg';
 
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
     navigator.getUserMedia({video: true, audio: false}, function (stream) {
