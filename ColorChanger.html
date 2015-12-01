@@ -60,8 +60,10 @@ var btnBlue = document.getElementById('button_color_blue');
      resultContext.drawImage(image,0,0,resultCanvas.width,resultCanvas.height);
      baseContext.drawImage(image,0,0,resultCanvas.width,resultCanvas.height);
 
-     //rrf.effectRemoveReflection(resultCanvas);
-     rrf.effectSmoothReflection(resultCanvas);
+    //rrf.effectRemoveReflection(resultCanvas);
+    //rrf.effectSmoothReflection(resultCanvas);
+     colorFilters.edgeDetector(resultCanvas);
+
      }
      image.src='test5.jpg';
 
@@ -99,8 +101,10 @@ var btnBlue = document.getElementById('button_color_blue');
         //chromaKey();
         //changeHueForDichromacy(resultContext);
         //colorFilter.effectBinarize(context);
-        rrf.effectRemoveReflection(canvas);
-        rrf.effectSmoothReflection(smoothCanvas);
+        //rrf.effectRemoveReflection(canvas);
+        colorFilters.effectGrayScale(canvas);
+        //rrf.effectSmoothReflection(smoothCanvas);
+        colorFilters.edgeDetector(smoothCanvas);
         rrf.effectBinarize(binarizeCanvas);
         requestAnimationFrame(draw);
     };

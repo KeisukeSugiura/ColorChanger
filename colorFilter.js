@@ -254,3 +254,113 @@ var colorFilter = (function(){
 
     return module;
 })();
+
+var colorFilters = (function(){
+
+    var module = {};
+
+    module.sobelFilterH = new Array(
+        1,0,-1,
+        2,0,-2,
+        1,0,-1
+        );
+
+    module.sobelFilterV = new Array(
+        1,2,1,
+        0,0,0,
+        -1,-2,-1
+        );
+
+    module.laplacian4Filter = new Array(
+         0, 1, 0, 
+         1, -4, 1, 
+         0, 1, 0 
+        );
+
+    module.laplacian8Filter = new Array(
+         1, 1, 1, 
+         1, -8, 1, 
+         1, 1, 1 
+        );
+
+    module.effectGrayScale = function(canvas){
+        var context = canvas.getContext('2d');
+         var imageData = context.getImageData(0, 0, canvas.width, canvas.height),
+            data = imageData.data;
+            //TODO 3フレームの平均をとる->module.getAverageColor(imageData);
+            imageData.data = module.grayScaleFilter(data);
+        context.putImageData(imageData, 0, 0);
+        
+    }
+
+    module.grayScaleFilter = function(imageData){
+        for(var i=0; i<imageData.length;i=i+4){
+            var ys = module.grayScale(imageData[i],imageData[i+1],imageData[i+2]);
+            imageData[i] = ys;
+            imageData[i+1] = ys;
+            imageData[i+2] = ys;
+        }
+
+        return imageData;
+    }
+
+    module.grayScale = function(r,g,b){
+        return r*0.298912 + g*0.586611 + b * 0.114478;
+    }
+
+
+    module.edgeDetector = function(canvas){
+        var _canvasW = canvas.width;
+        var _canvasH = canvas.height;
+        var context = canvas.getContext('2d');
+        var imageData = context.getImageData(0,0,canvas.width,canvas.height);
+        var data = imageData.data;
+        var grayScaleData = new Array(_canvasH*_canvasW);
+
+        for(var i=0;i<data.length;i=i+4){
+            grayScaleData[i/4] = module.grayScale(data[i],data[i+1],data[i+2]);
+        }
+
+        var resultImage = module.spatialFilter(grayScaleData,_canvasH,_canvasW,module.laplacian8Filter,3);
+
+        for(var i=0;i<data.length;i++){
+            data[i*4] = resultImage[i];
+            data[i*4+1] = resultImage[i];
+            data[i*4+2] = resultImage[i];
+        }
+        imageData.data = data;
+        context.putImageData(imageData, 0, 0);
+    }
+
+    module.spatialFilter = function(grayImage,height,width,filter,size_f){
+        var init = Math.floor(size_f/2);
+        var from = -init;
+        var to = init;
+
+        var resultImage = new Array(height*width);
+        for(var i= 0;i<resultImage.length;i++){
+            resultImage[i];
+        }
+
+        for  (var i = init; i < height - init; i++) {
+            for (var j = init; j < width - init; j++) {
+              var sum = 0.0;
+              /* フィルタリング */
+              for (var n = from; n <= to; n++) {
+                for (var m = from; m <= to; m++) {
+                  sum += grayImage[(i + n) * width + j + m] * 
+                    filter[(n + init) * size_f + m + init];
+                }
+              }
+              resultImage[i * width + j] = Math.floor(Math.abs(sum));
+            }
+          }
+        return resultImage;
+    }
+
+
+
+
+    return module;
+
+})();
